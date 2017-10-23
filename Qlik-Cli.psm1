@@ -378,7 +378,7 @@ function Connect-Qlik {
     return $result
   }
 }
-New-Alias -Name Qonnect -Value Connect-Qlik
+Set-Alias -Name Qonnect -Value Connect-Qlik
 
 function Copy-QlikApp {
   [CmdletBinding()]
@@ -1924,6 +1924,20 @@ function Sync-QlikUserDirectory {
   }
 }
 
+function Unpublish-QlikObject {
+  [CmdletBinding()]
+  param (
+    [parameter(Mandatory=$true,Position=0,ValueFromPipelinebyPropertyName=$True)]
+    [string]$id
+  )
+
+  PROCESS {
+    $path = "/qrs/app/object/$id/unpublish"
+
+    return Invoke-QlikPut $path
+  }
+}
+
 function Update-QlikApp {
   [CmdletBinding()]
   param (
@@ -2223,7 +2237,7 @@ function Update-QlikRule {
 
     [ValidateSet("hub","qmc","both")]
     [alias("context")]
-    [string]$rulecontext = "both",
+    [string]$rulecontext,
 
     [int]$actions,
     [string]$comment,
@@ -2360,6 +2374,29 @@ function Update-QlikServiceCluster {
     $json = $cluster | ConvertTo-Json -Compress -Depth 10
     return Invoke-QlikPut /qrs/ServiceCluster/$id $json
   }
+}
+
+function Update-QlikStream {
+    [CmdletBinding()]
+    param (
+        [parameter(Mandatory=$true,ValueFromPipeline=$True,ValueFromPipelinebyPropertyName=$True,Position=0)]
+        [string]$id,
+
+        [string[]]$customProperties,
+        [string[]]$tags
+    )
+
+    PROCESS {
+        $stream = Get-QlikStream $id -raw
+        If( $customProperties ) {
+          $stream.customProperties = @(GetCustomProperties $customProperties)
+        }
+        If( $tags ) {
+          $stream.tags = @(GetTags $tags)
+        }
+        $json = $stream | ConvertTo-Json -Compress -Depth 10
+        return Invoke-QlikPut "/qrs/stream/$id" $json
+    }
 }
 
 function Update-QlikUser {
@@ -2633,4 +2670,4 @@ function Remove-QlikContentLibrary {
 }
 
 
-Export-ModuleMember -function Add-Qlik*, Connect-Qlik, Copy-Qlik*, Export-Qlik*, Get-Qlik*, Import-Qlik*, Invoke-Qlik*, New-Qlik*, Publish-Qlik*, Register-Qlik*, Remove-Qlik*, Restore-Qlik*, Select-Qlik*, Set-Qlik*, Start-Qlik*, Switch-Qlik*, Sync-QlikUserDirectory, Update-Qlik*, Wait-Qlik* -alias *
+Export-ModuleMember -function Add-Qlik*, Connect-Qlik, Copy-Qlik*, Export-Qlik*, Get-Qlik*, Import-Qlik*, Invoke-Qlik*, New-Qlik*, Publish-Qlik*, Register-Qlik*, Remove-Qlik*, Restore-Qlik*, Select-Qlik*, Set-Qlik*, Start-Qlik*, Switch-Qlik*, Sync-QlikUserDirectory, Unpublish-Qlik*, Update-Qlik*, Wait-Qlik* -alias *
